@@ -65,7 +65,7 @@ function checkURL(url, tabId) {
   tabToFlaggedDomainMap.set(tabId, strippedDomain);
 
   // Check if the domain contains "bbb" or "reddit" and exclude the banner for these
-  const excludedDomains = ["bbb", "reddit", "google"];
+  const excludedDomains = ["bbb", "reddit", "google", "trustpilot"];
   const shouldExclude = excludedDomains.some((excluded) => strippedDomain.includes(excluded));
 
   if (shouldExclude) {
@@ -120,8 +120,9 @@ function displayBanner(strippedDomain) {
     <button id="close-banner" style="background: transparent; color: black; border: none; font-size: 16px; cursor: pointer; position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">X</button>
     Notice consider verifying <strong>${strippedDomain}</strong>
     <span style="margin-left: 1px;">on: 
-        <a id="search-bbb" href="#" style="margin-left: 1px; color: black; text-decoration: underline; cursor: pointer;">BBB.com</a> or 
-        <a id="search-reddit" href="#" style="margin-left: 1px; color: black; text-decoration: underline; cursor: pointer;">Reddit.com/rScams</a>
+        <a id="search-bbb" href="#" style="margin-left: 1px; color: black; text-decoration: underline; cursor: pointer;">BBB.com</a>, 
+        <a id="search-reddit" href="#" style="margin-left: 1px; color: black; text-decoration: underline; cursor: pointer;">Reddit.com/rScams</a>, or 
+        <a id="search-trustpilot" href="#" style="margin-left: 1px; color: black; text-decoration: underline; cursor: pointer;">Trustpilot</a>
     </span>
   `;
 
@@ -151,6 +152,13 @@ function displayBanner(strippedDomain) {
       const redditUrl = `https://www.reddit.com/r/Scams/search/?q=${strippedDomain}`;
       console.log(`Opening Reddit search for: ${strippedDomain}`);
       window.open(redditUrl, "_blank");
+    });
+  
+    document.getElementById("search-trustpilot").addEventListener("click", (e) => {
+      e.preventDefault();
+      const trustpilotUrl = `https://www.trustpilot.com/search?query=${strippedDomain}`;
+      console.log(`Opening Trustpilot search for: ${strippedDomain}`);
+      window.open(trustpilotUrl, "_blank");
     });
   } catch (error) {
     console.error("Error adding event listeners to banner:", error);
