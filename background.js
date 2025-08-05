@@ -38,7 +38,6 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 });
 
 // Check if the URL matches the excluded domains
-// Check if the URL matches the excluded domains
 function checkURL(url, tabId) {
   console.log("Checking URL:", url);
 
@@ -51,8 +50,15 @@ function checkURL(url, tabId) {
   const normalizedUrl = url.replace(/^https?:\/\/(www\.)?/, '').toLowerCase();
   console.log("Normalized URL:", normalizedUrl); // Add logging for the normalized URL
 
-  // Extract the main domain (e.g., "homeaglow" from "homeaglow.com")
-  const strippedDomain = normalizedUrl.split('.')[0];
+  // Extract hostname part (before any slash)
+  const domainWithPath = normalizedUrl.split('/')[0]; 
+
+  // Split the domain into parts by '.'
+  const hostParts = domainWithPath.split('.');
+
+  // Get second-level domain if possible, otherwise first part
+  const strippedDomain = hostParts.length >= 2 ? hostParts[hostParts.length - 2] : hostParts[0];
+
   console.log("Stripped Domain:", strippedDomain); // Log the stripped domain
 
   // Check if the URL is from the extension itself and avoid opening a popup
@@ -64,13 +70,13 @@ function checkURL(url, tabId) {
   // Track the strippedDomain for this tab
   tabToFlaggedDomainMap.set(tabId, strippedDomain);
 
-  // Check if the domain contains "bbb" or "reddit" and exclude the banner for these
+  // Check if the domain contains excluded keywords and exclude the banner for these
   const excludedDomains = ["bbb", "reddit", "google", "trustpilot"];
   const shouldExclude = excludedDomains.some((excluded) => strippedDomain.includes(excluded));
 
   if (shouldExclude) {
     console.log("Skipping banner for excluded domain:", strippedDomain);
-    return; // Exit the function if the domain contains "bbb" or "reddit"
+    return; // Exit the function if the domain contains excluded keywords
   }
 
   // Check if the tab still exists
@@ -92,8 +98,7 @@ function checkURL(url, tabId) {
     }
   });
 }
-
-
+/*
 function displayBanner(strippedDomain) {
   console.log(`Displaying banner for domain: ${strippedDomain}`);
 
@@ -112,7 +117,7 @@ function displayBanner(strippedDomain) {
   banner.style.fontSize = "14px"; // Reduced font size
   banner.style.zIndex = "999999"; // Ensure banner is on top
   banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)"; // Smaller shadow
-  banner.style.backgroundColor = "#f5f5dc"; // Beige banner
+  banner.style.backgroundColor = "#d3d3d3"; // grey banner
   banner.style.color = "black";
   banner.style.pointerEvents = "auto"; // Makes the banner clickable
 
@@ -163,4 +168,82 @@ function displayBanner(strippedDomain) {
   } catch (error) {
     console.error("Error adding event listeners to banner:", error);
   }
+}*/
+
+function displayBanner(strippedDomain) {
+  console.log(`Displaying banner for domain: ${strippedDomain}`);
+
+  // Remove any existing banner
+  const existingBanner = document.getElementById("banner");
+  if (existingBanner) existingBanner.remove();
+
+  const banner = document.createElement("div");
+  banner.id = "banner";
+  banner.style.position = "fixed";
+  banner.style.top = "0";
+  banner.style.left = "0";
+  banner.style.width = "100%";
+  banner.style.textAlign = "center";
+  banner.style.padding = "5px"; // same padding as before
+  banner.style.fontSize = "14px"; // same font size
+  banner.style.zIndex = "999999";
+  banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
+  banner.style.backgroundColor = "#fef3c7"; // updated color
+  banner.style.color = "black";
+  banner.style.pointerEvents = "auto";
+  banner.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"; // updated font
+
+  banner.innerHTML = `
+    <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px;">
+      <button id="close-banner" style="background: transparent; color: #333; border: none; cursor: pointer; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: bold;">×</button>
+      Notice consider verifying <strong style="font-weight: 700;">${strippedDomain}</strong>
+      <span style="margin-left: 1px;">
+        on: 
+        <a id="search-bbb" href="#" style="margin-left: 1px; color: black; text-decoration: underline; cursor: pointer;">BBB.com</a>, 
+        <a id="search-reddit" href="#" style="margin-left: 1px; color: black; text-decoration: underline; cursor: pointer;">Reddit.com/rScams</a>, or 
+        <a id="search-trustpilot" href="#" style="margin-left: 1px; color: black; text-decoration: underline; cursor: pointer;">Trustpilot</a>
+      </span>
+    </div>
+  `;
+
+
+
+  document.body.appendChild(banner);
+  console.log("Banner appended to the DOM.");
+
+  document.body.style.marginTop = "30px"; // same margin as before
+
+  // Add event listeners
+  try {
+    document.getElementById("close-banner").addEventListener("click", () => {
+      console.log("Banner closed.");
+      banner.remove();
+      document.body.style.marginTop = "0"; // Reset margin
+    });
+
+    document.getElementById("search-bbb").addEventListener("click", (e) => {
+      e.preventDefault();
+      const bbbUrl = `https://www.bbb.org/search?find_text=${strippedDomain}`;
+      console.log(`Opening BBB search for: ${strippedDomain}`);
+      window.open(bbbUrl, "_blank");
+    });
+
+    document.getElementById("search-reddit").addEventListener("click", (e) => {
+      e.preventDefault();
+      const redditUrl = `https://www.reddit.com/r/Scams/search/?q=${strippedDomain}`;
+      console.log(`Opening Reddit search for: ${strippedDomain}`);
+      window.open(redditUrl, "_blank");
+    });
+  
+    document.getElementById("search-trustpilot").addEventListener("click", (e) => {
+      e.preventDefault();
+      const trustpilotUrl = `https://www.trustpilot.com/search?query=${strippedDomain}`;
+      console.log(`Opening Trustpilot search for: ${strippedDomain}`);
+      window.open(trustpilotUrl, "_blank");
+    });
+  } catch (error) {
+    console.error("Error adding event listeners to banner:", error);
+  }
 }
+
+
